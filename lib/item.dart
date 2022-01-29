@@ -61,7 +61,13 @@ class ScanResultTile extends StatelessWidget {
     for (var i = 0; i < item.items.length; i++) {
       switch (item.items[i].getType()) {
         case ItemType.transit:
-          widgets.add(TransitItem(item: item.items[i]));
+          if(item.items[i - 1].getType() == ItemType.train) {
+            widgets.add(TransitItem(
+              item: item.items[i], transitType: TransitType.train_to_plane,));
+          }else {
+            widgets.add(TransitItem(
+              item: item.items[i], transitType: TransitType.plane_to_train,));
+          }
           break;
         case ItemType.train:
           widgets.add(TrainItem(item: item.items[i]));
@@ -109,7 +115,10 @@ class TrainItem extends StatelessWidget {
       children: [
         ListTile(
           title: Text("火车"),
-          subtitle: Text("车次：${item.source_train_no}"),
+          subtitle: Text("车次：${item.source_train_no}",style: Theme.of(context)
+              .textTheme
+              .caption
+              ?.apply(color: Colors.black)),
           trailing: ElevatedButton(
             child: const Text('查看详情'),
             style: ElevatedButton.styleFrom(
@@ -124,8 +133,8 @@ class TrainItem extends StatelessWidget {
         ),
         ListBody(
           children: [
-            _buildAdvRow(context, "出发站", "${item.begin_train_station_name}"),
-            _buildAdvRow(context, "到达站", "${item.end_train_station_name}"),
+            _buildAdvRow(context, "出发站", "${item.begin_train_station_name}(${item.begin_train_station_no})"),
+            _buildAdvRow(context, "到达站", "${item.end_train_station_name}(${item.end_train_station_no})"),
             _buildAdvRow(context, "出发时间", "${item.begin_time}"),
             _buildAdvRow(context, "到达时间", "${item.end_time}"),
           ],
@@ -136,8 +145,9 @@ class TrainItem extends StatelessWidget {
 }
 
 class TransitItem extends StatelessWidget {
-  TransitItem({Key? key, required this.item}) : super(key: key);
+  TransitItem({Key? key, required this.item, required this.transitType}) : super(key: key);
   Item item;
+  TransitType transitType;
 
   Widget _buildAdvRow(BuildContext context, String title, String value) {
     return Padding(
@@ -170,7 +180,10 @@ class TransitItem extends StatelessWidget {
       children: [
         ListTile(
           title: Text("中转"),
-          subtitle: Text("城市：${item.city_name}"),
+          subtitle: Text("城市：${item.city_name}(${item.city_no})",style: Theme.of(context)
+              .textTheme
+              .caption
+              ?.apply(color: Colors.black)),
           trailing: ElevatedButton(
             child: const Text('查看详情'),
             style: ElevatedButton.styleFrom(
@@ -184,15 +197,26 @@ class TransitItem extends StatelessWidget {
           ),
         ),
         ListBody(
-          children: [
-            _buildAdvRow(context, "起点", "${item.train_station_name}"),
-            _buildAdvRow(context, "目的地", "${item.airport_name}"),
-            _buildAdvRow(context, "预计用时", "${item.time! ~/ 3600} 小时 ${(item.time! ~/ 60) % 60} 分 ${item.time! % 60} 秒"),
-          ],
+          children: getList(context),
         )
       ],
     );
   }
+
+  List<Widget> getList(BuildContext context) {
+    if( transitType == TransitType.train_to_plane) {
+      return [
+        _buildAdvRow(context, "起点", "${item.train_station_name}(${item.train_station_no})"),
+        _buildAdvRow(context, "目的地", "${item.airport_name}(${item.airport_no})"),
+        _buildAdvRow(context, "预计用时", "${item.time! ~/ 3600} 小时 ${(item.time! ~/ 60) % 60} 分 ${item.time! % 60} 秒"),
+      ];
+    }
+    return [
+      _buildAdvRow(context, "起点", "${item.airport_name}(${item.airport_no})"),
+      _buildAdvRow(context, "目的地", "${item.train_station_name}(${item.train_station_no})"),
+      _buildAdvRow(context, "预计用时", "${item.time! ~/ 3600} 小时 ${(item.time! ~/ 60) % 60} 分 ${item.time! % 60} 秒"),
+    ];
+   }
 }
 
 class PlaneItem extends StatelessWidget {
@@ -230,7 +254,10 @@ class PlaneItem extends StatelessWidget {
       children: [
         ListTile(
           title: Text("飞机"),
-          subtitle: Text("航班号：${item.plane_no}"),
+          subtitle: Text("航班号：${item.plane_no}",style: Theme.of(context)
+              .textTheme
+              .caption
+              ?.apply(color: Colors.black)),
           trailing: ElevatedButton(
             child: const Text('查看详情'),
             style: ElevatedButton.styleFrom(
@@ -245,8 +272,8 @@ class PlaneItem extends StatelessWidget {
         ),
         ListBody(
           children: [
-            _buildAdvRow(context, "出发机场", "${item.begin_airport_name}"),
-            _buildAdvRow(context, "到达机场", "${item.end_airport_name}"),
+            _buildAdvRow(context, "出发机场", "${item.begin_airport_name}(${item.begin_airport_no})"),
+            _buildAdvRow(context, "到达机场", "${item.end_airport_name}(${item.end_airport_no})"),
             _buildAdvRow(context, "出发时间", "${item.begin_time}"),
             _buildAdvRow(context, "到达时间", "${item.end_time}"),
           ],
@@ -358,4 +385,10 @@ enum ItemType {
   train,
   plane,
   transit,
+}
+
+
+enum TransitType {
+  train_to_plane,
+  plane_to_train,
 }

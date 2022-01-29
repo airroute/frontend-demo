@@ -154,14 +154,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   }
                   return ListView.builder(
                       controller: _scrollController,
-                      itemCount: snapshot.data!.length * 2,
+                      itemCount: snapshot.data!.length,
                       padding: const EdgeInsets.all(16.0),
                       itemBuilder: (context, i) {
-                        if (i.isOdd) return Divider();
-
-                        final index = i ~/ 2;
-
-                        return ScanResultTile(item: snapshot.data![index]);
+                        return ScanResultTile(item: snapshot.data![i]);
                       });
                 }),
           ),
