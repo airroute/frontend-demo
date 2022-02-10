@@ -148,16 +148,22 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   if (snapshot.data == null) {
                     return Container();
                   }
-                  print(snapshot.data!.length);
                   if (snapshot.data!.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
                   return ListView.builder(
                       controller: _scrollController,
-                      itemCount: snapshot.data!.length,
+                      itemCount: snapshot.data!.length * 2,
                       padding: const EdgeInsets.all(16.0),
                       itemBuilder: (context, i) {
-                        return ScanResultTile(item: snapshot.data![i]);
+                        if (i.isOdd) return Divider();
+
+                        final index = i ~/ 2;
+
+                        return Theme(
+                            data: Theme.of(context)
+                                .copyWith(dividerColor: Colors.transparent),
+                            child: ScanResultTile(item: snapshot.data![index]));
                       });
                 }),
           ),
@@ -184,38 +190,12 @@ class _SignUpFormState extends State<SignUpForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox.fromSize(size: const Size(0, 30)),
         Text('路线搜索 demo', style: Theme.of(context).textTheme.headline4),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            const Text("出发城市三字码"),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: min(
-                    400,
-                    max((MediaQuery.of(context).size.width - 300) / 3 - 60,
-                        20)),
-                child: TextFormField(
-                  controller: _beginCityNoController,
-                  decoration: const InputDecoration(hintText: '出发城市'),
-                ),
-              ),
-            ),
-            const Text("到达城市三字码"),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                width: min(
-                    400,
-                    max((MediaQuery.of(context).size.width - 300) / 3 - 60,
-                        20)),
-                child: TextFormField(
-                  controller: _endCityNoController,
-                  decoration: const InputDecoration(hintText: '到达城市'),
-                ),
-              ),
-            ),
+            ...getInput(context),
             ElevatedButton(
               child: const Text('搜索'),
               style: ElevatedButton.styleFrom(
@@ -244,5 +224,66 @@ class _SignUpFormState extends State<SignUpForm> {
         ),
       ],
     );
+  }
+
+  List<Widget> getInput(BuildContext context) {
+    if (MediaQuery.of(context).size.width > 800) {
+      return [
+        const Text("出发城市三字码"),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: min(400,
+                max((MediaQuery.of(context).size.width - 300) / 3 - 60, 20)),
+            child: TextFormField(
+              controller: _beginCityNoController,
+              decoration: const InputDecoration(hintText: '出发城市'),
+            ),
+          ),
+        ),
+        const Text("到达城市三字码"),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SizedBox(
+            width: min(400,
+                max((MediaQuery.of(context).size.width - 300) / 3 - 60, 20)),
+            child: TextFormField(
+              controller: _endCityNoController,
+              decoration: const InputDecoration(hintText: '到达城市'),
+            ),
+          ),
+        ),
+      ];
+    } else {
+      return [
+        Column(
+          children: [
+            const Text("出发城市三字码"),
+            SizedBox.fromSize(size: const Size(0, 30)),
+            const Text("到达城市三字码"),
+          ],
+        ),
+        Column(
+          children: [
+            SizedBox(
+                width: min(400,
+                    max((MediaQuery.of(context).size.width - 100) / 2, 20)),
+                child: TextFormField(
+                  controller: _beginCityNoController,
+                  decoration: const InputDecoration(hintText: '出发城市'),
+                ),
+              ),
+            SizedBox(
+              width: min(400,
+                  max((MediaQuery.of(context).size.width - 100) / 2 , 20)),
+              child: TextFormField(
+                controller: _endCityNoController,
+                decoration: const InputDecoration(hintText: '到达城市'),
+              ),
+            ),
+          ],
+        )
+      ];
+    }
   }
 }

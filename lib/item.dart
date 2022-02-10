@@ -30,7 +30,6 @@ class ScanResultTile extends StatelessWidget {
         }
       }
     }
-    print(item.items.length);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.start,
