@@ -5,8 +5,9 @@ import 'dart:math';
 import 'package:bot_toast/bot_toast.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:untitled2/item.dart';
+import 'item.dart';
 
 void main() => runApp(const SignUpApp());
 
@@ -31,7 +32,7 @@ class _SignUpAppState extends State<SignUpApp> {
       color: Colors.lightBlue,
       title: "路线搜索 demo",
       routes: {
-        '/': (context) => SignUpScreen(),
+        '/': (context) => const SignUpScreen(),
       },
     );
   }
@@ -49,21 +50,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String? begin;
   String? end;
 
-  List<RouteItem>? now_route = null;
-  StreamController<List<RouteItem>?> _dataController =
+  List<RouteItem>? nowRoute;
+  final StreamController<List<RouteItem>?> _dataController =
       StreamController<List<RouteItem>?>();
-  bool _isFinash = false;
-  ScrollController _scrollController = ScrollController();
+  bool finish = false;
+  final ScrollController _scrollController = ScrollController();
 
   Future<void> _onRefresh(String begin, String end) async {
     this.begin = begin;
     this.end = end;
-    _isFinash = false;
+    finish = false;
     _dataController.add([]);
-    this.page = 0;
+    page = 0;
     try {
       var response = await Dio().get(
-        'https://api.airrouter.top/route?begin_no=${begin}&end_no=${end}&page_size=20&page=$page',
+        'https://api.airrouter.top/route?begin_no=$begin&end_no=$end&page_size=20&page=$page',
         options: Options(
           validateStatus: (status) {
             return true;
@@ -76,14 +77,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         return RouteItem(
             items, x["begin_time"], x["between_time"], x["end_time"]);
       }).toList();
-      if (routes.length == 0) {
+      if (routes.isEmpty) {
         BotToast.showText(text: "路径不存在");
-        now_route = null;
+        nowRoute = null;
         _dataController.add(null);
         return;
       }
-      now_route = routes;
-      _dataController.add(now_route);
+      nowRoute = routes;
+      _dataController.add(nowRoute);
     } catch (e) {
       //print(e);
     }
@@ -92,7 +93,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   void load() async {
-    this.page++;
+    page++;
     var response = await Dio().get(
       'https://api.airrouter.top/route?begin_no=${begin!}&end_no=${end!}&page_size=20&page=$page',
     );
@@ -101,12 +102,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return RouteItem(
           items, x["begin_time"], x["between_time"], x["end_time"]);
     }).toList();
-    if (routes.length == 0) {
-      _isFinash = true;
+    if (routes.isEmpty) {
+      setState(() {
+        finish = true;
+      });
+      BotToast.showText(text: "加载完毕");
       return;
     }
-    now_route!.addAll(routes);
-    _dataController.add(now_route);
+    nowRoute!.addAll(routes);
+    _dataController.add(nowRoute);
   }
 
   @override
@@ -115,8 +119,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _scrollController.addListener(() {
       if (_scrollController.position.pixels ==
           _scrollController.position.maxScrollExtent) {
-        if (now_route == null) return;
-        if (_isFinash) return;
+        if (nowRoute == null) return;
+        if (finish) {
+          BotToast.showText(text: "加载完毕");
+          return;
+        }
         if (begin == null) return;
         if (end == null) return;
         load();
@@ -151,20 +158,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   if (snapshot.data!.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  return ListView.builder(
-                      controller: _scrollController,
-                      itemCount: snapshot.data!.length * 2,
-                      padding: const EdgeInsets.all(16.0),
-                      itemBuilder: (context, i) {
-                        if (i.isOdd) return Divider();
+                  double padding = MediaQuery.of(context).size.width / 180;
+                  if(kIsWeb) {
+                    return ListView.builder(
+                        controller: _scrollController,
+                        itemCount: snapshot.data!.length * 2,
+                        padding: EdgeInsets.all(padding + 5),
+                        itemBuilder: (context, i) {
+                          if (i ==  snapshot.data!.length * 2 - 1 && !finish) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (i.isOdd) return const Divider();
 
-                        final index = i ~/ 2;
+                          final index = i ~/ 2;
 
-                        return Theme(
-                            data: Theme.of(context)
-                                .copyWith(dividerColor: Colors.transparent),
-                            child: ScanResultTile(item: snapshot.data![index]));
-                      });
+                          return Theme(
+                              data: Theme.of(context)
+                                  .copyWith(dividerColor: Colors.transparent),
+                              child: ScanResultTile(item: snapshot.data![index]));
+                        });
+                  }
+                  return Scrollbar(
+                    child: ListView.builder(
+                        controller: _scrollController,
+                        itemCount: snapshot.data!.length * 2,
+                        padding: EdgeInsets.all(padding + 5),
+                        itemBuilder: (context, i) {
+                          if (i ==  snapshot.data!.length * 2 - 1 && !finish) {
+                            return const Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          if (i.isOdd) return const Divider();
+
+                          final index = i ~/ 2;
+
+                          return Theme(
+                              data: Theme.of(context)
+                                  .copyWith(dividerColor: Colors.transparent),
+                              child: ScanResultTile(item: snapshot.data![index]));
+                        }),
+                  );
                 }),
           ),
         ],
@@ -216,6 +254,7 @@ class _SignUpFormState extends State<SignUpForm> {
                   BotToast.showText(text: "请输入正确的到达城市三字码");
                   return;
                 }
+                FocusManager.instance.primaryFocus?.unfocus();
                 widget._onRefresh(_beginCityNoController.text.toUpperCase(),
                     _endCityNoController.text.toUpperCase());
               },
