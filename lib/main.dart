@@ -102,7 +102,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       return RouteItem(
           items, x["begin_time"], x["between_time"], x["end_time"]);
     }).toList();
-    if (routes.isEmpty) {
+    if (routes.length < 20) {
       setState(() {
         finish = true;
       });
@@ -214,7 +214,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 class SignUpForm extends StatefulWidget {
   final Future<void> Function(String begin, String end) _onRefresh;
 
-  const SignUpForm(@required this._onRefresh);
+  const SignUpForm(this._onRefresh);
 
   @override
   _SignUpFormState createState() => _SignUpFormState();
@@ -242,18 +242,6 @@ class _SignUpFormState extends State<SignUpForm> {
                     color: Colors.white,
                   )),
               onPressed: () {
-                if (_beginCityNoController.text.length != 3 ||
-                    !(RegExp(r'[A-Za-z]{3}')
-                        .hasMatch(_beginCityNoController.text))) {
-                  BotToast.showText(text: "请输入正确的出发城市三字码");
-                  return;
-                }
-                if (_endCityNoController.text.length != 3 ||
-                    !(RegExp(r'[A-Za-z]{3}')
-                        .hasMatch(_endCityNoController.text))) {
-                  BotToast.showText(text: "请输入正确的到达城市三字码");
-                  return;
-                }
                 FocusManager.instance.primaryFocus?.unfocus();
                 widget._onRefresh(_beginCityNoController.text.toUpperCase(),
                     _endCityNoController.text.toUpperCase());
