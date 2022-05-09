@@ -34,8 +34,9 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  dio: ^4.0.5-beta1
-  bot_toast: ^4.0.1
+  dio: ^4.0.6
+  bot_toast:
+    git: https://github.com/MMMzq/bot_toast.git
 
 dev_dependencies:
   flutter_test:
@@ -58,8 +59,8 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-#  fonts:
-#    - family: Noto
+  #  fonts:
+  #    - family: Noto
 
   # To add assets to your application, add an assets section, like this:
   # assets:
